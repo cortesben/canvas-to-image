@@ -2,17 +2,9 @@
 const imageSource = 'https://cdn.glitch.com/52fb4035-569b-4d6a-9aee-999ae9d8bbc4%2Fgettyimages-179494696.jpg?1539712939599';
 const s_wrapper = document.querySelector('.canvas-wrapper');
 
-
-// window.imageValues = new Promise(getImageValues);
-
 function createImage(imageRequirements) {
-    const { canvas, context, imageSource } = imageRequirements;
+    const { canvas: can, context: con, imageSource } = imageRequirements;
     const image = document.createElement('img');
-
-    let imageWidth = null;
-    let imageHeight = null;
-  
-    image.setAttribute('crossorigin' ,'');
 
     /**
     * After we have an image element we assign a load event listner
@@ -22,28 +14,55 @@ function createImage(imageRequirements) {
     */
     console.time('assign image to canvas');
     image.addEventListener('load', event => {
-      
-        const imageSize = {
-          width: image.naturalWidth,
-          height: image.naturalHeight
-        }
 
-        canvas.width = image.naturalWidth;;
-        canvas.height = image.naturalHeight;;
+      can.width = image.naturalWidth;;
+      can.height = image.naturalHeight;;
 
-        context.drawImage(image, 0, 0);
-      
-        window.canvasToDataURI();
+      con.drawImage(image, 0, 0);
 
-//       disable submit untill this call back is done
-       console.timeEnd('assign image to canvas');
+      console.timeEnd('assign image to canvas');
     });
    
-  
     image.src = imageSource;
 
-    return image;
+    return new Promise( resolve => resolve(image) );
 }
+
+/**
+* We are using both an HTML element
+* And the resolved value from a callback after image source loads
+* Image element is used
+* @return {promise} 
+* @return {html element} 
+*/
+const createImagePromise = (imageRequirements) => new Promise( (resolve, reject) => {
+    const { canvas, context, imageSource } = imageRequirements;
+    const image = document.createElement('img');
+
+    /**
+    * After image loads this event fires
+    * we pass back an object to resolve our promise
+    * the composition of this is done after this resolves inside of our create canvas function
+    */
+    console.time('assign image to canvas promise');
+    image.addEventListener('load', event => {
+      
+      resolve({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        canvas: canvas,
+        context: context,
+        image: image
+      });
+      
+      console.timeEnd('assign image to canvas promise');
+    });
+   
+    image.setAttribute('crossorigin' ,'');
+    image.src = imageSource;
+
+});
+
 
 function createCanvas(imageSource) {
 
@@ -55,17 +74,40 @@ function createCanvas(imageSource) {
         imageSource
     }
 
-    const image = createImage(imageRequirements);
+    const image = createImagePromise(imageRequirements);
   
+    /**
+    *
+    * Here we get the width and height of image in memory
+    * We then set those demensions to our canvas element that we pass in
+    * We assign these messurements to the canvas element to keep our aspect ration distortion free
+    */
+    image.then( imageData => {
+      const { width, height, canvas, context, image } = imageData;
+      
+      canvas.width = width;
+      canvas.height = height;
+      context.drawImage(image, 0, 0);
+    });
+
     canvas.setAttribute('class', 'canvas-image');
 
-    return canvas;
+    return {
+      canvas,
+      image
+    }
 }
 
 function appendToScreen(addOptions) {
     const { destination, sourceElement, imageSource } = addOptions;
+    const callCreateCanvas = sourceElement(imageSource);
+  
+    callCreateCanvas.image.then( () => {
+      window.canvasToBlob();
+      window.canvasToDataURI();
+    });
 
-    destination.appendChild(sourceElement(imageSource));
+    destination.appendChild(callCreateCanvas.canvas);
 }
 
 const addCanvas = {
@@ -75,3 +117,4 @@ const addCanvas = {
 }
 
 appendToScreen(addCanvas);
+
