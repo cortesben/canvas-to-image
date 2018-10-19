@@ -1,39 +1,12 @@
-// const imageSource = 'https://hips.hearstapps.com/ghk.h-cdn.co/assets/16/08/gettyimages-179494696.jpg';
 const imageSource = 'https://cdn.glitch.com/52fb4035-569b-4d6a-9aee-999ae9d8bbc4%2Fgettyimages-179494696.jpg?1539712939599';
 const s_wrapper = document.querySelector('.canvas-wrapper');
-
-function createImage(imageRequirements) {
-    const { canvas: can, context: con, imageSource } = imageRequirements;
-    const image = document.createElement('img');
-
-    /**
-    * After we have an image element we assign a load event listner
-    * Here we get the width and height of image in memory
-    * We then set those demensions to our canvas element that we pass in
-    * We assign these messurements to the canvas element to keep our aspect ration distortion free
-    */
-    console.time('assign image to canvas');
-    image.addEventListener('load', event => {
-
-      can.width = image.naturalWidth;;
-      can.height = image.naturalHeight;;
-
-      con.drawImage(image, 0, 0);
-
-      console.timeEnd('assign image to canvas');
-    });
-   
-    image.src = imageSource;
-
-    return new Promise( resolve => resolve(image) );
-}
-
+  
 /**
 * We are using both an HTML element
 * And the resolved value from a callback after image source loads
 * Image element is used
 * @return {promise} 
-* @return {html element} 
+* @return {html element, image width, height and canvas and canvas context} 
 */
 const createImagePromise = (imageRequirements) => new Promise( (resolve, reject) => {
     const { canvas, context, imageSource } = imageRequirements;
@@ -45,7 +18,7 @@ const createImagePromise = (imageRequirements) => new Promise( (resolve, reject)
     * the composition of this is done after this resolves inside of our create canvas function
     */
     console.time('assign image to canvas promise');
-    image.addEventListener('load', event => {
+    image.addEventListener('load', () => {
       
       resolve({
         width: image.naturalWidth,
@@ -80,7 +53,7 @@ function createCanvas(imageSource) {
     *
     * Here we get the width and height of image in memory
     * We then set those demensions to our canvas element that we pass in
-    * We assign these messurements to the canvas element to keep our aspect ration distortion free
+    * This is done keep our aspect ration distortion free
     */
     image.then( imageData => {
       const { width, height, canvas, context, image } = imageData;
@@ -117,4 +90,3 @@ const addCanvas = {
 }
 
 appendToScreen(addCanvas);
-

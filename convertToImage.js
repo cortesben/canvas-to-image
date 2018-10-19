@@ -1,5 +1,5 @@
 /**
-* Convert canvas element to blob
+* Convert canvas element to file blob
 */
 function canvasToBlob(){
   const s_canvasImage = document.querySelector('.canvas-image');
