@@ -10,7 +10,7 @@ function canvasToBlob(){
     const blobURL = URL.createObjectURL(blob);
 
     newImage.addEventListener('load', () => {
-      URL.revokeObjectURL(blobURL); 
+      URL.revokeObjectURL(blobURL);
     });
 
     newImage.src = blobURL;
